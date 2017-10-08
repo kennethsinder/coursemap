@@ -1,0 +1,15 @@
+<mat-card *ngFor="let term of terms">
+	<strong>{{ term.name }}</strong>
+	<mat-list *ngFor="let course of term.courses">
+		<mat-list-item>
+			<mat-icon>class</mat-icon>
+			<button mat-button>
+				{{ course.subject + ' ' + course.catalog_number }}</button>
+			</mat-list-item>
+	</mat-list>
+	<div class='termFooterButtons'>
+		<button (click)="addCourse(term)" mat-raised-button>Add Course</button>
+	</div>
+</mat-card>
+
+<button id='btnAddTerm' (click)="addTerm()" mat-raised-button>Add Term</button>

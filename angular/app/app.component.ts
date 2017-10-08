@@ -7,7 +7,7 @@ import { CoursesService } from './courses.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Welcome!';
+  title = 'CourseMap';
   courses = null;
 
   constructor(private coursesService: CoursesService) {
