@@ -1,6 +1,6 @@
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
-import { MdButtonModule, MdCheckboxModule } from '@angular/material';
+import { MatButtonModule, MatCheckboxModule } from '@angular/material';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
@@ -17,12 +17,12 @@ import { CoursesService } from './courses.service';
     BrowserModule,
     FormsModule,
     HttpModule,
-    MdButtonModule,
-    MdCheckboxModule
+    MatButtonModule,
+    MatCheckboxModule
   ],
   exports: [
-    MdButtonModule,
-    MdCheckboxModule
+    MatButtonModule,
+    MatCheckboxModule
   ],
   providers: [CoursesService],
   bootstrap: [AppComponent]
