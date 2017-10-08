@@ -37,7 +37,6 @@ class CoursesController extends Controller
             }
         }
 
-        $courses = [];
         foreach ($subjects as $subject) {
             $coursesFromSubject = $this->getUwApiResponse("courses/$subject");
             foreach ($coursesFromSubject as $course) {
