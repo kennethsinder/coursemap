@@ -11,6 +11,6 @@ export class AppComponent {
   courses = null;
 
   constructor(private coursesService: CoursesService) {
-    coursesService.getAllCourses();
+    // coursesService.getAllCourses();
   }
 }
