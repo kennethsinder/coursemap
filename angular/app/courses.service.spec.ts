@@ -27,7 +27,7 @@ describe('CoursesService', () => {
     it(
       'should return an empty array for no requisites',
       inject([CoursesService], (service: CoursesService) => {
-        expect(service.parseReqs('')).toBeFalsy();
+        expect(service.parseReqs('')).toEqual([]);
       })
     );
 

@@ -18,27 +18,12 @@ import { AppComponent } from './app.component';
 import { CoursesService } from './courses.service';
 import { CoursePlanComponent } from './course-plan/course-plan.component';
 
+import { appModule } from './app.module';
+
 describe('AppComponent', () => {
   beforeEach(
     async(() => {
-      TestBed.configureTestingModule({
-        declarations: [AppComponent, CoursePlanComponent],
-        imports: [
-          BrowserAnimationsModule,
-          BrowserModule,
-          FormsModule,
-          HttpModule,
-          MatButtonModule,
-          MatCheckboxModule,
-          MatGridListModule,
-          MatCardModule,
-          MatListModule,
-          MatIconModule
-        ],
-        exports: [],
-        providers: [CoursesService],
-        bootstrap: [AppComponent]
-      }).compileComponents();
+      TestBed.configureTestingModule(appModule).compileComponents();
     })
   );
 
@@ -52,7 +37,7 @@ describe('AppComponent', () => {
   );
 
   it(
-    `should have as title 'app works!'`,
+    `should have as title 'CourseMap!'`,
     async(() => {
       const fixture = TestBed.createComponent(AppComponent);
       const app = fixture.debugElement.componentInstance;

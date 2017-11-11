@@ -16,7 +16,7 @@ import { AppComponent } from './app.component';
 import { CoursesService } from './courses.service';
 import { CoursePlanComponent } from './course-plan/course-plan.component';
 
-@NgModule({
+export const appModule: object = {
   declarations: [AppComponent, CoursePlanComponent],
   imports: [
     BrowserAnimationsModule,
@@ -33,5 +33,7 @@ import { CoursePlanComponent } from './course-plan/course-plan.component';
   exports: [],
   providers: [CoursesService],
   bootstrap: [AppComponent]
-})
+};
+
+@NgModule(appModule)
 export class AppModule {}

@@ -3,6 +3,8 @@ import { Http } from '@angular/http';
 
 import 'rxjs/add/operator/map';
 
+declare var $: any;
+
 @Injectable()
 export class CoursesService {
   constructor(private http: Http) {}
@@ -16,12 +18,14 @@ export class CoursesService {
       });
   }
 
-  parseReqs(reqs) {
+  parseReqs(reqs: any): any[] {
     // Code from GitHub gist: https://gist.github.com/hxhl95/6151081
 
     reqs = reqs.replace(/prereq:/gi, '');
     reqs = reqs.replace(/([\/,;])/g, '$1 ');
-    if (!(reqs = reqs.match(/^.*[0-9]{2,3}[A-Z\)]*(.*\))*/))) return '';
+    if (!(reqs = reqs.match(/^.*[0-9]{2,3}[A-Z\)]*(.*\))*/))) {
+      return [];
+    }
     reqs = reqs[0];
 
     let engcards = { one: 1, two: 2, three: 3, '1': 1, '2': 2, '3': 3 };
