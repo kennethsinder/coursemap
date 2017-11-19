@@ -21,9 +21,9 @@ class CreateCoursesTable extends Migration
             $table->string('title');
             $table->mediumText('description');
             $table->decimal('units', 5, 2);
-            $table->mediumText('prerequisites');
-            $table->mediumText('corequisites');
-            $table->mediumText('antirequisites');
+            $table->mediumText('prerequisites')->nullable();
+            $table->mediumText('corequisites')->nullable();
+            $table->mediumText('antirequisites')->nullable();
         });
     }
 

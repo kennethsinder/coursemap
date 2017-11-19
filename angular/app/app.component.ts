@@ -8,9 +8,12 @@ import { CoursesService } from './courses.service';
 })
 export class AppComponent {
   title = 'CourseMap';
-  courses = null;
+  courses: any[] = [];
 
   constructor(private coursesService: CoursesService) {
-    // coursesService.getAllCourses();
+    coursesService.getAllCourses().subscribe(data => {
+      this.courses = data;
+      console.log(this.courses);
+    });
   }
 }
