@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CoursesService } from './courses.service';
 
 @Component({
   selector: 'app-root',
@@ -8,12 +7,4 @@ import { CoursesService } from './courses.service';
 })
 export class AppComponent {
   title = 'CourseMap';
-  courses: any[] = [];
-
-  constructor(private coursesService: CoursesService) {
-    coursesService.getAllCourses().subscribe(data => {
-      this.courses = data;
-      console.log(this.courses);
-    });
-  }
 }

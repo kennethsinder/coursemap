@@ -14,6 +14,24 @@ export class CoursesService {
     return this.http.get('/api/courses').map((res: any) => res.json());
   }
 
+  lookupByCode(courses: any[], courseCode: string): any {
+    if (!courseCode || !courses) {
+      return;
+    }
+    const splitCode = courseCode.split(' ');
+    if (!splitCode || splitCode.length !== 2) {
+      return;
+    }
+    for (const course of courses) {
+      if (
+        course.subject === splitCode[0] &&
+        course.catalog_number === splitCode[1]
+      ) {
+        return course;
+      }
+    }
+  }
+
   parseReqs(reqs: any): any[] {
     // Code from GitHub gist: https://gist.github.com/hxhl95/6151081
 
