@@ -1,6 +1,9 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { CoursesService } from '../courses.service';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+
+import { CoursesService } from '../courses.service';
+import { Course } from '../course';
+import { Term } from '../term';
 
 @Component({
   selector: 'app-course-plan',
@@ -8,32 +11,20 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
   styleUrls: ['./course-plan.component.scss']
 })
 export class CoursePlanComponent implements OnInit {
-  terms: any[] = [
+  terms: Term[] = [
     {
       name: '1A',
-      courses: [
-        { subject: 'MATH', catalog_number: '135' },
-        { subject: 'MATH', catalog_number: '239' }
-      ]
-    },
-    {
-      name: '1B',
-      courses: [
-        { subject: 'MATH', catalog_number: '135' },
-        { subject: 'MATH', catalog_number: '239' }
-      ]
+      courses: []
     }
   ];
 
-  public allCourses: any[] = [];
+  public allCourses: Course[] = [];
+
   constructor(
     private coursesService: CoursesService,
     public dialog: MatDialog
   ) {
-    coursesService.getAllCourses().subscribe(data => {
-      this.allCourses = data;
-      console.log(this.allCourses);
-    });
+    coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
   }
 
   ngOnInit(): void {}
@@ -43,9 +34,8 @@ export class CoursePlanComponent implements OnInit {
   }
 
   addCourse(term: any): void {
-    // term.courses.push({ subject: 'TEST', catalog_number: '101' });
     const dialogRef = this.dialog.open(AddCourseDialogComponent, {
-      width: '250px',
+      width: '300px',
       data: { term }
     });
 
@@ -56,8 +46,20 @@ export class CoursePlanComponent implements OnInit {
       }
     });
   }
+
+  showCourse(course: Course) {
+    const dialogRef = this.dialog.open(ViewCourseDialogComponent, {
+      width: '400px',
+      data: { course }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result);
+    });
+  }
 }
 
+// -------------------------------------------------------------
 @Component({
   selector: 'app-add-course-dialog',
   templateUrl: './add-course-dialog.component.html'
@@ -72,3 +74,28 @@ export class AddCourseDialogComponent {
     this.dialogRef.close();
   }
 }
+// -------------------------------------------------------------
+
+// -------------------------------------------------------------
+@Component({
+  selector: 'app-view-course-dialog',
+  templateUrl: './view-course-dialog.component.html'
+})
+export class ViewCourseDialogComponent implements OnInit {
+  course: Course;
+
+  constructor(
+    public dialogRef: MatDialogRef<ViewCourseDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+
+  ngOnInit() {
+    this.course = this.data.course;
+    console.log(this.course.subject);
+  }
+
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+}
+// -------------------------------------------------------------

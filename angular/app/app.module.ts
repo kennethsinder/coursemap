@@ -6,7 +6,8 @@ import {
   MatGridListModule,
   MatCardModule,
   MatListModule,
-  MatIconModule
+  MatIconModule,
+  MatProgressSpinnerModule
 } from '@angular/material';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NgModule } from '@angular/core';
@@ -17,25 +18,32 @@ import { AppComponent } from './app.component';
 import { CoursesService } from './courses.service';
 import {
   CoursePlanComponent,
-  AddCourseDialogComponent
+  AddCourseDialogComponent,
+  ViewCourseDialogComponent
 } from './course-plan/course-plan.component';
 
 export const appModule: object = {
-  declarations: [AppComponent, CoursePlanComponent, AddCourseDialogComponent],
+  declarations: [
+    AppComponent,
+    CoursePlanComponent,
+    AddCourseDialogComponent,
+    ViewCourseDialogComponent
+  ],
   imports: [
     BrowserAnimationsModule,
     BrowserModule,
     FormsModule,
     HttpModule,
     MatButtonModule,
+    MatCardModule,
     MatCheckboxModule,
     MatDialogModule,
     MatGridListModule,
-    MatCardModule,
+    MatIconModule,
     MatListModule,
-    MatIconModule
+    MatProgressSpinnerModule
   ],
-  entryComponents: [AddCourseDialogComponent],
+  entryComponents: [AddCourseDialogComponent, ViewCourseDialogComponent],
   exports: [],
   providers: [CoursesService],
   bootstrap: [AppComponent]

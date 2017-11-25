@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 
 import 'rxjs/add/operator/map';
+import { Observable } from 'rxjs/Observable';
+import { Course } from './course';
 
 // jQuery
 declare var $: any;
@@ -10,21 +12,21 @@ declare var $: any;
 export class CoursesService {
   constructor(private http: Http) {}
 
-  getAllCourses() {
+  getAllCourses(): Observable<Course[]> {
     return this.http.get('/api/courses').map((res: any) => res.json());
   }
 
-  lookupByCode(courses: any[], courseCode: string): any {
+  lookupByCode(courses: Course[], courseCode: string): Course {
     if (!courseCode || !courses) {
       return;
     }
-    const splitCode = courseCode.split(' ');
+    const splitCode = courseCode.split(/\s+/);
     if (!splitCode || splitCode.length !== 2) {
       return;
     }
     for (const course of courses) {
       if (
-        course.subject === splitCode[0] &&
+        course.subject.toLowerCase() === splitCode[0].toLowerCase() &&
         course.catalog_number === splitCode[1]
       ) {
         return course;

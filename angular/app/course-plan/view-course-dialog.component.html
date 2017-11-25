@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>{{ course.subject }} {{ course.catalog_number }} Details</h2>
+<mat-dialog-content>
+    <div *ngIf="course.title">
+        <strong>Title:</strong> {{ course.title }}
+    </div>
+    <div *ngIf="course.description">
+        <strong>Description:</strong> {{ course.description }}
+    </div>
+    <div *ngIf="course.units">
+        <strong>Units:</strong> {{ course.units }}
+    </div>
+    <div *ngIf="course.prerequisites">
+        <strong>Prerequisites:</strong> {{ course.prerequisites }}
+    </div>
+    <div *ngIf="course.corequisites">
+        <strong>Corequisites:</strong> {{ course.corequisites }}
+    </div>
+    <div *ngIf="course.antirequisites">
+        <strong>Antirequisites:</strong> {{ course.antirequisites }}
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <div style="width: 100%;">
+        <button mat-raised-button mat-dialog-close>Cancel</button>
+        <!-- Can optionally provide a result for the closing dialog. -->
+        <div style="float: right;">
+            <button mat-raised-button color="warn" [mat-dialog-close]="data">Remove Course</button>
+        </div>
+    </div>
+</mat-dialog-actions>
