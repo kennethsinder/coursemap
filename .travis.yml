@@ -1,0 +1,18 @@
+language: node_js
+
+node_js:
+  - “7”
+
+branches:
+  only:
+    - master
+
+before_script:
+  - npm install
+  - composer install
+  - npm install -g @angular/cli
+  - php artisan key:generate
+  - php artisan serve
+
+script:
+  - ng build --prod
