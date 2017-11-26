@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "290d809f7cf6beb7eec536c14924c3c4",
+    "content-hash": "ebc649cf2542e14679ca2517775a3319",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -526,39 +526,6 @@
                 }
             ],
             "time": "2015-04-20T18:58:01+00:00"
-        },
-        {
-            "name": "ksinder/requirements-parser-uw",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/kennethsinder/requirements-parser-uw.git",
-                "reference": "b5408e584e7b8bd6aa4cd6f113e6140e0f1e274c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/kennethsinder/requirements-parser-uw/zipball/b5408e584e7b8bd6aa4cd6f113e6140e0f1e274c",
-                "reference": "b5408e584e7b8bd6aa4cd6f113e6140e0f1e274c",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-0": {
-                    "ReqParser": "./"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "authors": [
-                {
-                    "name": "Kenneth Sinder",
-                    "email": "kennethsinder@gmail.com"
-                }
-            ],
-            "description": "Unofficial UW course requirement string parser",
-            "time": "2017-10-14T16:28:31+00:00"
         },
         {
             "name": "laravel/framework",
@@ -3838,9 +3805,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "ksinder/requirements-parser-uw": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
