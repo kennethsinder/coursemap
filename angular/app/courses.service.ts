@@ -4,6 +4,7 @@ import { Http } from '@angular/http';
 import 'rxjs/add/operator/map';
 import { Observable } from 'rxjs/Observable';
 import { Course } from './course';
+import { Term } from './term';
 
 // jQuery
 declare var $: any;
@@ -14,6 +15,20 @@ export class CoursesService {
 
   getAllCourses(): Observable<Course[]> {
     return this.http.get('/api/courses').map((res: any) => res.json());
+  }
+
+  coursesEqual(c1: Course, c2: Course): boolean {
+    return (
+      c1.subject.toLowerCase() === c2.subject.toLowerCase() &&
+      c1.catalog_number.toLowerCase() === c2.catalog_number.toLowerCase()
+    );
+  }
+
+  courseEqualsArray(c1: Course, c2: string[]): boolean {
+    return (
+      c1.subject.toLowerCase() === c2[0].toLowerCase() &&
+      c1.catalog_number.toLowerCase() === c2[1].toLowerCase()
+    );
   }
 
   lookupByCode(courses: Course[], courseCode: string): Course {
@@ -32,6 +47,152 @@ export class CoursesService {
         return course;
       }
     }
+  }
+
+  getReqsForCourse(course: Course): { [key: string]: any[] } {
+    return {
+      prerequisites: course.prerequisites
+        ? this.parseReqs(course.prerequisites)
+        : null,
+      antirequisites: course.antirequisites
+        ? this.parseReqs(course.antirequisites)
+        : null,
+      corequisites: course.corequisites
+        ? this.parseReqs(course.corequisites)
+        : null
+    };
+  }
+
+  removeFromReqs(reqs: any, course: Course): any {
+    if (!reqs || (Array.isArray(reqs) && !reqs.length)) {
+      return [];
+    }
+    if (reqs !== null && typeof reqs === 'object' && !Array.isArray(reqs)) {
+      return this.coursesEqual(course, reqs) ? [] : reqs;
+    }
+    if (typeof reqs === 'string' || reqs instanceof String) {
+      return this.courseEqualsArray(
+        course,
+        reqs.match(/([A-Z]+)(.+)/i).slice(1)
+      )
+        ? []
+        : reqs;
+    }
+    if (Number(reqs[0]) === 1) {
+      for (let i = 1; i < reqs.length; ++i) {
+        reqs[i] = this.removeFromReqs(reqs[i], course);
+        if (!reqs[i] || !reqs[i].length) {
+          return [];
+        }
+      }
+      return reqs;
+    }
+    const updatedReqs: any[] = [];
+    for (let i = 0; i < reqs.length; ++i) {
+      reqs[i] = this.removeFromReqs(reqs[i], course);
+      if (reqs[i] && reqs[i].length) {
+        updatedReqs.push(reqs[i]);
+      }
+    }
+    return updatedReqs;
+  }
+
+  courseInReqTree(course: Course, reqs: any[]) {
+    if (typeof reqs === 'string' || reqs instanceof String) {
+      return this.courseEqualsArray(
+        course,
+        reqs.match(/([A-Z]+)(.+)/i).slice(1)
+      );
+    }
+
+    if (reqs !== null && typeof reqs === 'object' && !Array.isArray(reqs)) {
+      return this.coursesEqual(course, reqs);
+    }
+
+    if (!reqs || (Array.isArray(reqs) && !reqs.length)) {
+      return [];
+    }
+
+    for (const entry of reqs) {
+      if (this.courseInReqTree(course, entry)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  courseInTerm(course: Course, term: Term): boolean {
+    for (const c of term.courses) {
+      if (this.coursesEqual(c, course)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  earlierTerms(
+    course: Course,
+    terms: Term[],
+    inclusive: boolean = false
+  ): Term[] {
+    const result: Term[] = [];
+    for (const term of terms) {
+      if (!this.courseInTerm(course, term)) {
+        result.push(term);
+      } else {
+        if (inclusive) {
+          result.push(term);
+        }
+        break;
+      }
+    }
+    return result;
+  }
+
+  reqsMetForCourse(course: Course, terms: Term[]): boolean {
+    // Obtain pre-, co-, and anti-reqs using req parsing algo and bind them to an object
+    const reqs = this.getReqsForCourse(course);
+
+    // Go through all previous courses and remove met prerequisites
+    for (const term of this.earlierTerms(course, terms)) {
+      for (const termCourse of term.courses) {
+        reqs.prerequisites = this.removeFromReqs(
+          reqs.prerequisites,
+          termCourse
+        );
+      }
+    }
+
+    // Go through all previous courses and this term, and remove met corequisites
+    for (const term of this.earlierTerms(course, terms, true)) {
+      for (const termCourse of term.courses) {
+        reqs.corequisites = this.removeFromReqs(reqs.corequisites, termCourse);
+      }
+    }
+
+    // Go through all terms and see if any antireqs match
+    for (const term of terms) {
+      for (const termCourse of term.courses) {
+        if (this.courseInReqTree(termCourse, reqs.antirequisites)) {
+          return false;
+        }
+      }
+    }
+
+    // Return True iff all reqs are met for the given `course` in appropriate `terms`
+    console.log(reqs);
+    return !reqs.prerequisites.length && !reqs.corequisites.length;
+  }
+
+  areReqsMet(terms: Term[]): boolean {
+    for (const term of terms) {
+      for (const course of term.courses) {
+        if (!this.reqsMetForCourse(course, terms)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   parseReqs(reqs: any): any[] {

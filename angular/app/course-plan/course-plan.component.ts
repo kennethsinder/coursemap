@@ -44,6 +44,7 @@ export class CoursePlanComponent implements OnInit {
       if (course) {
         term.courses.push(course);
       }
+      console.log(this.coursesService.areReqsMet(this.terms));
     });
   }
 
