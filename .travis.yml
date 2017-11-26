@@ -16,7 +16,7 @@ before_script:
   - npm install -g @angular/cli
   - cp .env.example .env
   - php artisan key:generate
-  - php artisan serve
 
 script:
   - ng build --prod
+  - ./vendor/bin/phpunit test
