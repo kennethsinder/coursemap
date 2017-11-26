@@ -3,11 +3,14 @@ language: node_js
 node_js:
   - 7.4.0
 
+php:
+  - 7.1
+  - 7.0
+
 branches:
   only:
   - gh-pages
   - /.*/
-
 
 before_script:
   - npm install
