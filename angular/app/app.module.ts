@@ -7,7 +7,8 @@ import {
   MatCardModule,
   MatListModule,
   MatIconModule,
-  MatProgressSpinnerModule
+  MatProgressSpinnerModule,
+  MatTooltipModule,
 } from '@angular/material';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NgModule } from '@angular/core';
@@ -19,7 +20,7 @@ import { CoursesService } from './courses.service';
 import {
   CoursePlanComponent,
   AddCourseDialogComponent,
-  ViewCourseDialogComponent
+  ViewCourseDialogComponent,
 } from './course-plan/course-plan.component';
 
 export const appModule: object = {
@@ -27,7 +28,7 @@ export const appModule: object = {
     AppComponent,
     CoursePlanComponent,
     AddCourseDialogComponent,
-    ViewCourseDialogComponent
+    ViewCourseDialogComponent,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -41,12 +42,13 @@ export const appModule: object = {
     MatGridListModule,
     MatIconModule,
     MatListModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   entryComponents: [AddCourseDialogComponent, ViewCourseDialogComponent],
   exports: [],
   providers: [CoursesService],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 };
 
 @NgModule(appModule)

@@ -8,4 +8,5 @@ export class Course {
   prerequisites: string;
   corequisites: string;
   antirequisites: string;
+  error: string; // Empty string for no errors with course selection
 }

@@ -51,15 +51,9 @@ export class CoursesService {
 
   getReqsForCourse(course: Course): { [key: string]: any[] } {
     return {
-      prerequisites: course.prerequisites
-        ? this.parseReqs(course.prerequisites)
-        : null,
-      antirequisites: course.antirequisites
-        ? this.parseReqs(course.antirequisites)
-        : null,
-      corequisites: course.corequisites
-        ? this.parseReqs(course.corequisites)
-        : null
+      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : null,
+      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : null,
+      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : null,
     };
   }
 
@@ -71,12 +65,7 @@ export class CoursesService {
       return this.coursesEqual(course, reqs) ? [] : reqs;
     }
     if (typeof reqs === 'string' || reqs instanceof String) {
-      return this.courseEqualsArray(
-        course,
-        reqs.match(/([A-Z]+)(.+)/i).slice(1)
-      )
-        ? []
-        : reqs;
+      return this.courseEqualsArray(course, reqs.match(/([A-Z]+)(.+)/i).slice(1)) ? [] : reqs;
     }
     if (Number(reqs[0]) === 1) {
       for (let i = 1; i < reqs.length; ++i) {
@@ -98,24 +87,27 @@ export class CoursesService {
   }
 
   courseInReqTree(course: Course, reqs: any[]) {
-    if (typeof reqs === 'string' || reqs instanceof String) {
-      return this.courseEqualsArray(
-        course,
-        reqs.match(/([A-Z]+)(.+)/i).slice(1)
-      );
+    if ((typeof reqs === 'string' || reqs instanceof String) && reqs != null) {
+      const matches = reqs.match(/([A-Z]+)(.+)/i);
+      return matches && matches.length > 2 && this.courseEqualsArray(course, matches.slice(1))
+        ? reqs
+        : false;
     }
 
     if (reqs !== null && typeof reqs === 'object' && !Array.isArray(reqs)) {
-      return this.coursesEqual(course, reqs);
+      return this.coursesEqual(course, reqs)
+        ? `${(reqs as Course).subject} ${(reqs as Course).catalog_number}`
+        : false;
     }
 
     if (!reqs || (Array.isArray(reqs) && !reqs.length)) {
-      return [];
+      return false;
     }
 
     for (const entry of reqs) {
-      if (this.courseInReqTree(course, entry)) {
-        return true;
+      const result = this.courseInReqTree(course, entry);
+      if (result) {
+        return result;
       }
     }
     return false;
@@ -130,11 +122,7 @@ export class CoursesService {
     return false;
   }
 
-  earlierTerms(
-    course: Course,
-    terms: Term[],
-    inclusive: boolean = false
-  ): Term[] {
+  earlierTerms(course: Course, terms: Term[], inclusive: boolean = false): Term[] {
     const result: Term[] = [];
     for (const term of terms) {
       if (!this.courseInTerm(course, term)) {
@@ -156,11 +144,11 @@ export class CoursesService {
     // Go through all previous courses and remove met prerequisites
     for (const term of this.earlierTerms(course, terms)) {
       for (const termCourse of term.courses) {
-        reqs.prerequisites = this.removeFromReqs(
-          reqs.prerequisites,
-          termCourse
-        );
+        reqs.prerequisites = this.removeFromReqs(reqs.prerequisites, termCourse);
       }
+    }
+    if (reqs.prerequisites.length) {
+      course.error = 'Missing prerequisite';
     }
 
     // Go through all previous courses and this term, and remove met corequisites
@@ -169,18 +157,22 @@ export class CoursesService {
         reqs.corequisites = this.removeFromReqs(reqs.corequisites, termCourse);
       }
     }
+    if (reqs.corequisites.length) {
+      course.error = 'Missing corequisite';
+    }
 
     // Go through all terms and see if any antireqs match
     for (const term of terms) {
       for (const termCourse of term.courses) {
-        if (this.courseInReqTree(termCourse, reqs.antirequisites)) {
+        const conflict = this.courseInReqTree(termCourse, reqs.antirequisites);
+        if (conflict) {
+          course.error = `Taking antirequisite ${conflict}`;
           return false;
         }
       }
     }
 
     // Return True iff all reqs are met for the given `course` in appropriate `terms`
-    console.log(reqs);
     return !reqs.prerequisites.length && !reqs.corequisites.length;
   }
 
@@ -188,6 +180,7 @@ export class CoursesService {
     for (const term of terms) {
       for (const course of term.courses) {
         if (!this.reqsMetForCourse(course, terms)) {
+          term.error = course.error || 'Requisites error';
           return false;
         }
       }
@@ -219,11 +212,7 @@ export class CoursesService {
       reqs = pstmp;
     }
     while (
-      reqs !==
-      (pstmp = reqs.replace(
-        /([A-Z]{2,})([,\/\s]+[^0-9]+)([0-9]{2,3})/,
-        '$1 $3$2$3'
-      ))
+      reqs !== (pstmp = reqs.replace(/([A-Z]{2,})([,\/\s]+[^0-9]+)([0-9]{2,3})/, '$1 $3$2$3'))
     ) {
       reqs = pstmp;
     }
@@ -236,28 +225,16 @@ export class CoursesService {
         return parse(tokens[1]);
       }
 
-      const seps = [
-        [';', []],
-        ['and', []],
-        ['\\&', []],
-        [],
-        [',', []],
-        ['or', [1]],
-        ['\\/', [1]]
-      ];
+      const seps = [[';', []], ['and', []], ['\\&', []], [], [',', []], ['or', [1]], ['\\/', [1]]];
       for (let i = 0; i < seps.length; i++) {
         if (seps[i].length === 0) {
           if ((tokens = /^(one|two|three|1|2|3) of(.+)$/gi.exec(reqs))) {
-            return (pstmp = parse(
-              tokens[2].replace(/,(?=[^\)]*(?:\(|$))/g, ' or')
-            )).length === 1
+            return (pstmp = parse(tokens[2].replace(/,(?=[^\)]*(?:\(|$))/g, ' or'))).length === 1
               ? pstmp
               : $.merge([engcards[tokens[1].toLowerCase()]], pstmp.splice(1));
           }
         } else if (
-          (tokens = reqs.split(
-            new RegExp(seps[i][0] + '(?=[^\\)]*(?:\\(|$))', 'i')
-          ))[0] !== reqs
+          (tokens = reqs.split(new RegExp(seps[i][0] + '(?=[^\\)]*(?:\\(|$))', 'i')))[0] !== reqs
         ) {
           return $.merge(
             seps[i][1],

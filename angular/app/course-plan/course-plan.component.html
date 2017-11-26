@@ -1,13 +1,21 @@
 <mat-card *ngFor="let term of terms" class="termCard">
     <strong>{{ term.name }}</strong>
+    <span style="padding-left: 10px; cursor: default;">
+        <i class="material-icons" *ngIf="!term.error" style="vertical-align: middle;">check_circle</i>
+        <i class="material-icons" *ngIf="!!term.error" matTooltip="{{ term.error }}"
+        style="color: #f00; vertical-align: middle;" matTooltipPosition="above">error</i>
+    </span>
     <mat-list *ngFor="let course of term.courses">
         <mat-list-item>
             <mat-icon>class</mat-icon>
-            <button mat-button (click)="showCourse(course)">
+            <button mat-button (click)="showCourse(term, course)">
 				{{ course.subject + ' ' + course.catalog_number }}
 			</button>
         </mat-list-item>
     </mat-list>
+    <div>
+        <strong>Units: </strong>{{ getTotalUnits(term) }}
+    </div>
     <div class='termFooterButtons'>
         <button (click)="addCourse(term)" mat-raised-button>
 			<mat-icon>add</mat-icon>Add Course

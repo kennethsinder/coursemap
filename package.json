@@ -58,7 +58,7 @@
   },
   "lint-staged": {
     "angular/app/**/*.ts": [
-      "prettier --single-quote --write",
+      "prettier --single-quote --trailing-comma es5 --print-width 100 --write",
       "git add"
     ]
   }

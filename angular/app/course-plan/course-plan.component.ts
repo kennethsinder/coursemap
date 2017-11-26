@@ -8,35 +8,41 @@ import { Term } from '../term';
 @Component({
   selector: 'app-course-plan',
   templateUrl: './course-plan.component.html',
-  styleUrls: ['./course-plan.component.scss']
+  styleUrls: ['./course-plan.component.scss'],
 })
 export class CoursePlanComponent implements OnInit {
   terms: Term[] = [
     {
       name: '1A',
-      courses: []
-    }
+      courses: [],
+      error: null,
+    },
   ];
 
   public allCourses: Course[] = [];
 
-  constructor(
-    private coursesService: CoursesService,
-    public dialog: MatDialog
-  ) {
+  constructor(private coursesService: CoursesService, public dialog: MatDialog) {
     coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
   }
 
   ngOnInit(): void {}
 
   addTerm(): void {
-    this.terms.push({ name: 'Untitled', courses: [] });
+    this.terms.push({ name: 'Untitled', courses: [], error: null });
+  }
+
+  getTotalUnits(term: Term) {
+    let result = 0;
+    for (const course of term.courses) {
+      result += Number(course.units);
+    }
+    return result;
   }
 
   addCourse(term: any): void {
     const dialogRef = this.dialog.open(AddCourseDialogComponent, {
       width: '300px',
-      data: { term }
+      data: { term },
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -44,18 +50,30 @@ export class CoursePlanComponent implements OnInit {
       if (course) {
         term.courses.push(course);
       }
-      console.log(this.coursesService.areReqsMet(this.terms));
+
+      term.error = null;
+      course.error = null;
+      this.coursesService.areReqsMet(this.terms);
     });
   }
 
-  showCourse(course: Course) {
+  showCourse(term: Term, course: Course) {
     const dialogRef = this.dialog.open(ViewCourseDialogComponent, {
       width: '400px',
-      data: { course }
+      data: { course },
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log(result);
+      if (result) {
+        const index = term.courses.indexOf(course);
+        if (index !== -1) {
+          term.courses.splice(index, 1);
+        }
+      }
+
+      course.error = null;
+      term.error = null;
+      this.coursesService.areReqsMet(this.terms);
     });
   }
 }
@@ -63,7 +81,7 @@ export class CoursePlanComponent implements OnInit {
 // -------------------------------------------------------------
 @Component({
   selector: 'app-add-course-dialog',
-  templateUrl: './add-course-dialog.component.html'
+  templateUrl: './add-course-dialog.component.html',
 })
 export class AddCourseDialogComponent {
   constructor(
@@ -80,7 +98,7 @@ export class AddCourseDialogComponent {
 // -------------------------------------------------------------
 @Component({
   selector: 'app-view-course-dialog',
-  templateUrl: './view-course-dialog.component.html'
+  templateUrl: './view-course-dialog.component.html',
 })
 export class ViewCourseDialogComponent implements OnInit {
   course: Course;
@@ -92,7 +110,6 @@ export class ViewCourseDialogComponent implements OnInit {
 
   ngOnInit() {
     this.course = this.data.course;
-    console.log(this.course.subject);
   }
 
   onNoClick(): void {
