@@ -1,18 +1,25 @@
-language: node_js
+language: php
 
-node_js:
-  - “7”
+php:
+  - '7.1'
+  - '7.0'
 
 branches:
   only:
-    - master
+  - gh-pages
+  - /.*/
 
 before_script:
+  - nvm install 7.4.0
   - npm install
-  - composer install
+  - composer install --no-interaction
   - npm install -g @angular/cli
+  - cp .env.example .env
   - php artisan key:generate
-  - php artisan serve
 
 script:
-  - ng build --prod
+  - ng build --prod --aot=false
+#  - ./vendor/bin/phpunit
+
+notifications:
+  email: false

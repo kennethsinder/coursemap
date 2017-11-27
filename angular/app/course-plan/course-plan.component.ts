@@ -84,6 +84,8 @@ export class CoursePlanComponent implements OnInit {
   templateUrl: './add-course-dialog.component.html',
 })
 export class AddCourseDialogComponent {
+  newCourse: string;
+
   constructor(
     public dialogRef: MatDialogRef<AddCourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
