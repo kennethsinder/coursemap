@@ -8,12 +8,12 @@ import {
   MatGridListModule,
   MatCardModule,
   MatListModule,
-  MatIconModule
+  MatIconModule,
 } from '@angular/material';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
-
+import { HttpModule, BaseRequestOptions, Http, XHRBackend } from '@angular/http';
+import { MockBackend } from '@angular/http/testing';
 import { AppComponent } from './app.component';
 import { CoursePlanComponent } from './course-plan/course-plan.component';
 
@@ -22,7 +22,17 @@ import { appModule } from './app.module';
 describe('AppComponent', () => {
   beforeEach(
     async(() => {
-      TestBed.configureTestingModule(appModule).compileComponents();
+      const mod = Object.assign({}, appModule);
+      (mod as any).providers.push(MockBackend);
+      (mod as any).providers.push(BaseRequestOptions);
+      (mod as any).providers.push({
+        provide: Http,
+        deps: [MockBackend, BaseRequestOptions],
+        useFactory: (backend: XHRBackend, defaultOptions: BaseRequestOptions) => {
+          return new Http(backend, defaultOptions);
+        },
+      });
+      TestBed.configureTestingModule(mod).compileComponents();
     })
   );
 
