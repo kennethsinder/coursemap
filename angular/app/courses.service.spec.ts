@@ -1,5 +1,5 @@
 import { TestBed, inject } from '@angular/core/testing';
-import { Http } from '@angular/http';
+import { Http, XHRBackend, BaseRequestOptions } from '@angular/http';
 import { MockBackend, MockConnection } from '@angular/http/testing';
 
 import { CoursesService } from './courses.service';
@@ -9,7 +9,18 @@ describe('CoursesService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [{ provide: Http, useClass: MockBackend }, CoursesService]
+      providers: [
+        {
+          provide: Http,
+          deps: [MockBackend, BaseRequestOptions],
+          useFactory: (backend: XHRBackend, defaultOptions: BaseRequestOptions) => {
+            return new Http(backend, defaultOptions);
+          },
+        },
+        BaseRequestOptions,
+        CoursesService,
+        MockBackend,
+      ],
     });
     inject([CoursesService], (_service: CoursesService) => {
       service = _service;

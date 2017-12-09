@@ -2,7 +2,6 @@ language: php
 
 php:
   - '7.1'
-  - '7.0'
 
 branches:
   only:
@@ -19,6 +18,8 @@ before_script:
 
 script:
   - ng build --prod --aot=false
+# To enable ng tests: https://goo.gl/L45GRk
+#  - ng test --single-run
 #  - ./vendor/bin/phpunit
 
 notifications:

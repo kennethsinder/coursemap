@@ -21,11 +21,11 @@ export class CoursePlanComponent implements OnInit {
 
   public allCourses: Course[] = [];
 
-  constructor(private coursesService: CoursesService, public dialog: MatDialog) {
-    coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
-  }
+  constructor(private coursesService: CoursesService, public dialog: MatDialog) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
+  }
 
   addTerm(): void {
     this.terms.push({ name: 'Untitled', courses: [], error: null });
