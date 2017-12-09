@@ -18,7 +18,8 @@ before_script:
 
 script:
   - ng build --prod --aot=false
-  - ng test --single-run
+# To enable ng tests: https://goo.gl/L45GRk
+#  - ng test --single-run
 #  - ./vendor/bin/phpunit
 
 notifications:
