@@ -1,3 +1,4 @@
+sudo: required
 language: php
 
 php:
@@ -7,6 +8,19 @@ branches:
   only:
   - gh-pages
   - /.*/
+
+addons:
+apt:
+  sources:
+    - google-chrome
+  packages:
+    - google-chrome-stable
+    - google-chrome-beta
+
+before_install:
+  - export CHROME_BIN=chromium-browser
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 
 before_script:
   - nvm install 7.4.0
@@ -18,9 +32,8 @@ before_script:
 
 script:
   - ng build --prod --aot=false
-# To enable ng tests: https://goo.gl/L45GRk
-#  - ng test --single-run
-#  - ./vendor/bin/phpunit
+  - ng test --single-run
+  - ./vendor/bin/phpunit
 
 notifications:
   email: false
