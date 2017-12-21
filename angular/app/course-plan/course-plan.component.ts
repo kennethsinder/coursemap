@@ -1,9 +1,11 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
+import { AddCourseDialogComponent } from './add-course-dialog/add-course-dialog.component';
 import { CoursesService } from '../courses.service';
 import { Course } from '../course';
 import { Term } from '../term';
+import { ViewCourseDialogComponent } from './view-course-dialog/view-course-dialog.component';
 
 @Component({
   selector: 'app-course-plan',
@@ -77,45 +79,3 @@ export class CoursePlanComponent implements OnInit {
     });
   }
 }
-
-// -------------------------------------------------------------
-@Component({
-  selector: 'app-add-course-dialog',
-  templateUrl: './add-course-dialog.component.html',
-})
-export class AddCourseDialogComponent {
-  newCourse: string;
-
-  constructor(
-    public dialogRef: MatDialogRef<AddCourseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}
-// -------------------------------------------------------------
-
-// -------------------------------------------------------------
-@Component({
-  selector: 'app-view-course-dialog',
-  templateUrl: './view-course-dialog.component.html',
-})
-export class ViewCourseDialogComponent implements OnInit {
-  course: Course;
-
-  constructor(
-    public dialogRef: MatDialogRef<ViewCourseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
-
-  ngOnInit() {
-    this.course = this.data.course;
-  }
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}
-// -------------------------------------------------------------
