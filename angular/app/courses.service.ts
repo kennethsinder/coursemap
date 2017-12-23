@@ -255,7 +255,7 @@ export class CoursesService {
   /**
    * Returns a requisites tree formed from the given human
    * readable requisites string.
-   * @param reqs Requisites as a human-readable stsring
+   * @param reqs Requisites as a human-readable string
    */
   parseReqs(reqs: any): any[] {
     // Code from GitHub gist: https://gist.github.com/hxhl95/6151081

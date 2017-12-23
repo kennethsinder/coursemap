@@ -29,10 +29,17 @@ export class CoursePlanComponent implements OnInit {
     this.coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
   }
 
+  /**
+   * Add new Term to terms array.
+   */
   addTerm(): void {
     this.terms.push({ name: 'Untitled', courses: [], error: null });
   }
 
+  /**
+   * Returns the total number of course units in a given Term.
+   * @param term Term over which to total the units
+   */
   getTotalUnits(term: Term) {
     let result = 0;
     for (const course of term.courses) {
@@ -41,6 +48,27 @@ export class CoursePlanComponent implements OnInit {
     return result;
   }
 
+  /**
+   * Helper method to update errors for all courses in all terms.
+   * @param modifiedTerm Term for which to clear errors, if desired
+   * @param modifiedCourse Course for which to clear errors, if desired
+   */
+  private updateReqErrors(modifiedTerm?: Term, modifiedCourse?: Course) {
+    if (modifiedTerm) {
+      modifiedTerm.error = null;
+    }
+
+    if (modifiedCourse) {
+      modifiedCourse.error = null;
+    }
+
+    this.coursesService.areReqsMet(this.terms);
+  }
+
+  /**
+   * Opens a dialog to handle adding an input Course to a given Term.
+   * @param term Term to which a course should be added
+   */
   addCourse(term: any): void {
     const dialogRef = this.dialog.open(AddCourseDialogComponent, {
       width: '300px',
@@ -53,12 +81,15 @@ export class CoursePlanComponent implements OnInit {
         term.courses.push(course);
       }
 
-      term.error = null;
-      course.error = null;
-      this.coursesService.areReqsMet(this.terms);
+      this.updateReqErrors(term, course);
     });
   }
 
+  /**
+   * Shows a details dialog to view and optionally delete a given Course.
+   * @param term Term for which the given Course is scheduled
+   * @param course The Course for which to show details.
+   */
   showCourse(term: Term, course: Course) {
     const dialogRef = this.dialog.open(ViewCourseDialogComponent, {
       width: '400px',
@@ -73,9 +104,7 @@ export class CoursePlanComponent implements OnInit {
         }
       }
 
-      course.error = null;
-      term.error = null;
-      this.coursesService.areReqsMet(this.terms);
+      this.updateReqErrors(term, course);
     });
   }
 }
