@@ -74,9 +74,9 @@ export class CoursesService {
    */
   getReqsForCourse(course: Course): { [key: string]: any[] } {
     return {
-      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : null,
-      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : null,
-      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : null,
+      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : [],
+      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : [],
+      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : [],
     };
   }
 
@@ -130,7 +130,7 @@ export class CoursesService {
     if ((typeof reqs === 'string' || reqs instanceof String) && reqs != null) {
       const matches = reqs.match(/([A-Z]+)(.+)/i);
       return matches && matches.length > 2 && this.courseEqualsArray(course, matches.slice(1))
-        ? String(reqs)
+        ? `${matches[1]} ${matches[2]}`
         : false;
     }
 

@@ -4,6 +4,7 @@ import { MockBackend, MockConnection } from '@angular/http/testing';
 
 import { CoursesService } from './courses.service';
 import { Course } from './course';
+import { Term } from './term';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -113,13 +114,13 @@ describe('CoursesService', () => {
       expect(result['antirequisites']).toEqual([]);
     });
 
-    it('should return object with null values if there are no requisites set', () => {
+    it('should return object with empty values if there are no requisites set', () => {
       const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
       const result: object = service.getReqsForCourse(course);
       expect(Object.keys(result).length).toBe(3);
-      expect(result['prerequisites']).toBe(null);
-      expect(result['corequisites']).toBe(null);
-      expect(result['antirequisites']).toBe(null);
+      expect(result['prerequisites']).toEqual([]);
+      expect(result['corequisites']).toEqual([]);
+      expect(result['antirequisites']).toEqual([]);
     });
   });
 
@@ -149,6 +150,117 @@ describe('CoursesService', () => {
       const result = service.removeFromReqs(reqs, course);
       expect(result).toEqual(['MATH239']);
       expect(result.length).toBe(1);
+    });
+  });
+
+  describe('Method: courseInReqTree', () => {
+    it('should return false if course not in reqs', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const reqs = ['MATH239', 'MATH117'];
+      const result = service.courseInReqTree(course, reqs);
+      expect(result).toBe(false);
+    });
+
+    it('should return code if course in reqs', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const reqs = ['MATH239', 'MATH135'];
+      const result = service.courseInReqTree(course, reqs);
+      expect(result).toBe('MATH 135');
+    });
+
+    it('should return code if course nested in reqs', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const reqs: any[] = ['MATH239', [1, 'MATH 116', 'MATH135']];
+      const result = service.courseInReqTree(course, reqs);
+      expect(result).toBe('MATH 135');
+    });
+  });
+
+  describe('Method: courseInTerm', () => {
+    it('should return false if course not in term', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const term: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [{ subject: 'ECE', catalog_number: '105', id: 2 }],
+      };
+      const result = service.courseInTerm(course, term);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true if course in term', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const term: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [
+          { subject: 'ECE', catalog_number: '105', id: 2 },
+          { subject: 'MATH', catalog_number: '135', id: 3 },
+        ],
+      };
+      const result = service.courseInTerm(course, term);
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('Method: earlierTerms', () => {
+    it('should return earlier terms if not inclusive', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const term1: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [{ subject: 'ECE', catalog_number: '105', id: 2 }],
+      };
+      const term2: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [{ subject: 'MATH', catalog_number: '135', id: 3 }],
+      };
+      const terms: Term[] = [term1, term2];
+      const result = service.earlierTerms(course, terms, false);
+
+      expect(result).toEqual([term1]);
+    });
+
+    it('should return earlier terms and this one if inclusive', () => {
+      const course: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const term1: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [{ subject: 'ECE', catalog_number: '105', id: 2 }],
+      };
+      const term2: Term = {
+        name: 'Untitled',
+        error: null,
+        courses: [{ subject: 'MATH', catalog_number: '135', id: 3 }],
+      };
+      const terms: Term[] = [term1, term2];
+      const result = service.earlierTerms(course, terms, true);
+
+      expect(result).toEqual(terms);
+    });
+  });
+
+  describe('Method: reqsMetForCourse', () => {
+    it('should return true if course and terms are falsy', () => {
+      const course: Course = {
+        subject: 'MATH',
+        catalog_number: '135',
+        id: 1,
+        prerequisites: '',
+        corequisites: '',
+        antirequisites: '',
+      };
+      const terms: Term[] = [{ name: 'Untitled', error: null, courses: [course] }];
+      expect(service.reqsMetForCourse(course, terms)).toBe(true);
+    });
+  });
+
+  describe('Method: removeFromReqs', () => {
+    it('should exist', () => {
+      expect(service.removeFromReqs).toBeTruthy();
     });
   });
 
