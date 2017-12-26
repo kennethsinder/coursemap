@@ -21,13 +21,9 @@ export class CoursePlanComponent implements OnInit {
     },
   ];
 
-  public allCourses: Course[] = [];
-
   constructor(private coursesService: CoursesService, public dialog: MatDialog) {}
 
-  ngOnInit(): void {
-    this.coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
-  }
+  ngOnInit(): void {}
 
   /**
    * Add new Term to terms array.
@@ -84,7 +80,7 @@ export class CoursePlanComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      const course = this.coursesService.lookupByCode(this.allCourses, result);
+      const course = this.coursesService.lookupByCode(result);
       if (course) {
         term.courses.push(course);
       }

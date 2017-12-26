@@ -77,7 +77,8 @@ describe('CoursesService', () => {
     it('should return falsy if there are no courses', () => {
       const courses: Course[] = [];
       const courseCode = 'MATH 135';
-      expect(service.lookupByCode(courses, courseCode)).toBeFalsy();
+      service.allCourses = courses;
+      expect(service.lookupByCode(courseCode)).toBeFalsy();
     });
 
     it('should return falsy if the course does not exist', () => {
@@ -85,7 +86,8 @@ describe('CoursesService', () => {
       const c2: Course = { subject: 'MATH', catalog_number: '239', id: 1 };
       const courses: Course[] = [c1, c2];
       const courseCode = 'MATH 117';
-      expect(service.lookupByCode(courses, courseCode)).toBeFalsy();
+      service.allCourses = courses;
+      expect(service.lookupByCode(courseCode)).toBeFalsy();
     });
 
     it('should return the course if there is a match', () => {
@@ -93,7 +95,8 @@ describe('CoursesService', () => {
       const c2: Course = { subject: 'MATH', catalog_number: '239', id: 1 };
       const courses: Course[] = [c1, c2];
       const courseCode = 'math  239';
-      expect(service.lookupByCode(courses, courseCode)).toBe(c2);
+      service.allCourses = courses;
+      expect(service.lookupByCode(courseCode)).toBe(c2);
     });
   });
 
@@ -272,7 +275,14 @@ describe('CoursesService', () => {
       })
     );
 
-    it('should return a singleton array for 1 course', () => {
+    it('should return a singleton array for 1 valid course', () => {
+      service.allCourses = [
+        {
+          subject: 'MATH',
+          catalog_number: '239',
+          id: 1,
+        },
+      ];
       expect(service.parseReqs('MATH 239')).toEqual(['MATH239']);
     });
   });

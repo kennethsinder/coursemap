@@ -11,7 +11,11 @@ declare var $: any;
 
 @Injectable()
 export class CoursesService {
-  constructor(private http: Http) {}
+  public allCourses: Course[] = [];
+
+  constructor(private http: Http) {
+    this.getAllCourses().subscribe(data => (this.allCourses = data));
+  }
 
   /**
    * Gets all courses from the backend
@@ -49,22 +53,20 @@ export class CoursesService {
    * @param courses The haystack of courses to search in
    * @param courseCode String course code e.g. "MATH 239"
    */
-  lookupByCode(courses: Course[], courseCode: string): Course {
-    if (!courseCode || !courses) {
+  lookupByCode(courseCode: string): Course {
+    if (!courseCode || !this.allCourses) {
       return;
     }
-    const splitCode = courseCode.split(/\s+/);
+    const splitCode = courseCode.match(/([a-z]+)\s*(.+)/i).slice(1);
     if (!splitCode || splitCode.length !== 2) {
       return;
     }
-    for (const course of courses) {
-      if (
-        course.subject.toLowerCase() === splitCode[0].toLowerCase() &&
-        course.catalog_number === splitCode[1]
-      ) {
+    for (const course of this.allCourses) {
+      if (this.courseEqualsArray(course, splitCode)) {
         return course;
       }
     }
+    return null;
   }
 
   /**
@@ -326,6 +328,13 @@ export class CoursesService {
       return;
     };
 
-    return parse(reqs);
+    const clean = reqs =>
+      reqs.filter(req => {
+        if ($.isNumeric(req)) return true;
+        else if (Array.isArray(req)) return (req = clean(req)).length;
+        else return this.lookupByCode(req) !== null;
+      });
+
+    return clean(parse(reqs));
   }
 }
