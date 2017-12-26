@@ -33,7 +33,15 @@ export class CoursePlanComponent implements OnInit {
    * Add new Term to terms array.
    */
   addTerm(): void {
-    this.terms.push({ name: 'Untitled', courses: [], error: null });
+    const getNextTermName = (terms: Term[]) => {
+      const matches = terms[terms.length - 1].name.match(/(\d+)(\w+)/);
+      if (matches.length < 3) {
+        return 'Untitled';
+      }
+      return matches[2] === 'A' ? `${matches[1]}B` : `${1 + Number(matches[1])}A`;
+    };
+
+    this.terms.push({ name: getNextTermName(this.terms), courses: [], error: null });
   }
 
   /**
