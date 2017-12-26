@@ -190,13 +190,31 @@ export class CoursesService {
     return result;
   }
 
+  addCoreqsToTerm(term: Term, coreqs: any, terms: Term[]) {
+    if (!coreqs || !coreqs.length) {
+      return;
+    }
+
+    if (Array.isArray(coreqs) && $.isNumeric(coreqs[0])) {
+      const numCoreqs = Number(coreqs[0]);
+      coreqs.slice(1, 1 + numCoreqs).forEach(req => this.addCoreqsToTerm(term, req, terms));
+    } else if (Array.isArray(coreqs)) {
+      coreqs.forEach(req => this.addCoreqsToTerm(term, req, terms));
+    } else {
+      const newCourse = this.lookupByCode(coreqs);
+      term.courses.push(newCourse);
+      this.reqsMetForCourse(newCourse, terms, true);
+    }
+  }
+
   /**
    * Return whether ALL known requisites for the given course are met
    * by the other courses in the given `terms` array.
    * @param course Specific course for which to check validity
    * @param terms Terms of courses with which to verify
+   * @param tryFix Whether or not to try to resolve requisites automagically
    */
-  reqsMetForCourse(course: Course, terms: Term[]): boolean {
+  reqsMetForCourse(course: Course, terms: Term[], tryFix: boolean = false): boolean {
     // Obtain pre-, co-, and anti-reqs using req parsing algo and bind them to an object
     const reqs = this.getReqsForCourse(course);
 
@@ -211,10 +229,18 @@ export class CoursesService {
     }
 
     // Go through all previous courses and this term, and remove met corequisites
-    for (const term of this.earlierTerms(course, terms, true)) {
+    const earlierTermsInclusive = this.earlierTerms(course, terms, true);
+    for (const term of earlierTermsInclusive) {
       for (const termCourse of term.courses) {
         reqs.corequisites = this.removeFromReqs(reqs.corequisites, termCourse);
       }
+    }
+    if (tryFix) {
+      this.addCoreqsToTerm(
+        earlierTermsInclusive[earlierTermsInclusive.length - 1],
+        reqs.corequisites,
+        terms
+      );
     }
     if (reqs.corequisites.length) {
       course.error = 'Missing corequisite';
