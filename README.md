@@ -16,10 +16,12 @@ To quickly spin up a development server:
 
 4. `ng build`
 
-5. `php artisan key:generate`
+5. `cp .env.example .env`
 
-6. Change DB password, etc. in `.env` file, and issue the following MySQL query: `create database if not exists 'coursemap'`
+6. `php artisan key:generate`
 
-7. `php artisan migrate`
+7. Change DB password, etc. in `.env` file, and issue the following MySQL query: `create database if not exists 'coursemap'`
 
-8. `php artisan serve`
+8. `php artisan migrate`
+
+9. `php artisan serve`

@@ -15,13 +15,11 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
+import { AddCourseDialogComponent } from './course-plan/add-course-dialog/add-course-dialog.component';
 import { AppComponent } from './app.component';
 import { CoursesService } from './courses.service';
-import {
-  CoursePlanComponent,
-  AddCourseDialogComponent,
-  ViewCourseDialogComponent,
-} from './course-plan/course-plan.component';
+import { CoursePlanComponent } from './course-plan/course-plan.component';
+import { ViewCourseDialogComponent } from './course-plan/view-course-dialog/view-course-dialog.component';
 
 export const appModule: object = {
   declarations: [

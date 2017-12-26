@@ -11,12 +11,24 @@ declare var $: any;
 
 @Injectable()
 export class CoursesService {
-  constructor(private http: Http) {}
+  public allCourses: Course[] = [];
 
+  constructor(private http: Http) {
+    this.getAllCourses().subscribe(data => (this.allCourses = data));
+  }
+
+  /**
+   * Gets all courses from the backend
+   */
   getAllCourses(): Observable<Course[]> {
     return this.http.get('/api/courses').map((res: any) => res.json());
   }
 
+  /**
+   * Returns true iff the two arguments are the same course.
+   * @param c1 Left-hand side course
+   * @param c2 Right-hand side course
+   */
   coursesEqual(c1: Course, c2: Course): boolean {
     return (
       c1.subject.toLowerCase() === c2.subject.toLowerCase() &&
@@ -24,6 +36,11 @@ export class CoursesService {
     );
   }
 
+  /**
+   * Returns true iff the two arguments are the same course.
+   * @param c1 Left-hand side Course
+   * @param c2 2-array of [subject, catalog_number] strings
+   */
   courseEqualsArray(c1: Course, c2: string[]): boolean {
     return (
       c1.subject.toLowerCase() === c2[0].toLowerCase() &&
@@ -31,33 +48,48 @@ export class CoursesService {
     );
   }
 
-  lookupByCode(courses: Course[], courseCode: string): Course {
-    if (!courseCode || !courses) {
+  /**
+   * Returns the Course object for the given course code.
+   * @param courses The haystack of courses to search in
+   * @param courseCode String course code e.g. "MATH 239"
+   */
+  lookupByCode(courseCode: string): Course {
+    if (!courseCode || !this.allCourses) {
       return;
     }
-    const splitCode = courseCode.split(/\s+/);
+    const splitCode = courseCode.match(/([a-z]+)\s*(.+)/i).slice(1);
     if (!splitCode || splitCode.length !== 2) {
       return;
     }
-    for (const course of courses) {
-      if (
-        course.subject.toLowerCase() === splitCode[0].toLowerCase() &&
-        course.catalog_number === splitCode[1]
-      ) {
+    for (const course of this.allCourses) {
+      if (this.courseEqualsArray(course, splitCode)) {
         return course;
       }
     }
+    return null;
   }
 
+  /**
+   * Returns pre-, co-, and anti-requisite trees in a convenient data object,
+   * given a course.
+   * @param course The course for which we want to build req trees
+   */
   getReqsForCourse(course: Course): { [key: string]: any[] } {
     return {
-      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : null,
-      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : null,
-      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : null,
+      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : [],
+      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : [],
+      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : [],
     };
   }
 
+  /**
+   * Returns a simplified version of the given req tree, that
+   * does not contain a course code string that equals the given `course`.
+   * @param reqs The req tree to mutate
+   * @param course The course to remove
+   */
   removeFromReqs(reqs: any, course: Course): any {
+    // Base cases
     if (!reqs || (Array.isArray(reqs) && !reqs.length)) {
       return [];
     }
@@ -67,7 +99,10 @@ export class CoursesService {
     if (typeof reqs === 'string' || reqs instanceof String) {
       return this.courseEqualsArray(course, reqs.match(/([A-Z]+)(.+)/i).slice(1)) ? [] : reqs;
     }
+
+    // Recursive cases
     if (Number(reqs[0]) === 1) {
+      // 1 at the beginning of a reqs array means "one of"
       for (let i = 1; i < reqs.length; ++i) {
         reqs[i] = this.removeFromReqs(reqs[i], course);
         if (!reqs[i] || !reqs[i].length) {
@@ -86,11 +121,18 @@ export class CoursesService {
     return updatedReqs;
   }
 
-  courseInReqTree(course: Course, reqs: any[]) {
+  /**
+   * Recursive helper method that returns a formatted course code string
+   * if the given course is found within the given requisite tree, or
+   * false otherwise.
+   * @param course The course to search with
+   * @param reqs A requisite tree containing course strings
+   */
+  courseInReqTree(course: Course, reqs: any[]): string | boolean {
     if ((typeof reqs === 'string' || reqs instanceof String) && reqs != null) {
       const matches = reqs.match(/([A-Z]+)(.+)/i);
       return matches && matches.length > 2 && this.courseEqualsArray(course, matches.slice(1))
-        ? reqs
+        ? `${matches[1]} ${matches[2]}`
         : false;
     }
 
@@ -113,6 +155,11 @@ export class CoursesService {
     return false;
   }
 
+  /**
+   * Returns true iff the course is in the term.
+   * @param course The course to check membership with
+   * @param term The term in which to look
+   */
   courseInTerm(course: Course, term: Term): boolean {
     for (const c of term.courses) {
       if (this.coursesEqual(c, course)) {
@@ -122,6 +169,12 @@ export class CoursesService {
     return false;
   }
 
+  /**
+   * Return list of Terms that are before the given course
+   * @param course The Course to compare with
+   * @param terms The terms to filter from
+   * @param inclusive Whether to include the term with `course` in it
+   */
   earlierTerms(course: Course, terms: Term[], inclusive: boolean = false): Term[] {
     const result: Term[] = [];
     for (const term of terms) {
@@ -137,7 +190,31 @@ export class CoursesService {
     return result;
   }
 
-  reqsMetForCourse(course: Course, terms: Term[]): boolean {
+  addCoreqsToTerm(term: Term, coreqs: any, terms: Term[]) {
+    if (!coreqs || !coreqs.length) {
+      return;
+    }
+
+    if (Array.isArray(coreqs) && $.isNumeric(coreqs[0])) {
+      const numCoreqs = Number(coreqs[0]);
+      coreqs.slice(1, 1 + numCoreqs).forEach(req => this.addCoreqsToTerm(term, req, terms));
+    } else if (Array.isArray(coreqs)) {
+      coreqs.forEach(req => this.addCoreqsToTerm(term, req, terms));
+    } else {
+      const newCourse = this.lookupByCode(coreqs);
+      term.courses.push(newCourse);
+      this.reqsMetForCourse(newCourse, terms, true);
+    }
+  }
+
+  /**
+   * Return whether ALL known requisites for the given course are met
+   * by the other courses in the given `terms` array.
+   * @param course Specific course for which to check validity
+   * @param terms Terms of courses with which to verify
+   * @param tryFix Whether or not to try to resolve requisites automagically
+   */
+  reqsMetForCourse(course: Course, terms: Term[], tryFix: boolean = false): boolean {
     // Obtain pre-, co-, and anti-reqs using req parsing algo and bind them to an object
     const reqs = this.getReqsForCourse(course);
 
@@ -152,10 +229,18 @@ export class CoursesService {
     }
 
     // Go through all previous courses and this term, and remove met corequisites
-    for (const term of this.earlierTerms(course, terms, true)) {
+    const earlierTermsInclusive = this.earlierTerms(course, terms, true);
+    for (const term of earlierTermsInclusive) {
       for (const termCourse of term.courses) {
         reqs.corequisites = this.removeFromReqs(reqs.corequisites, termCourse);
       }
+    }
+    if (tryFix) {
+      this.addCoreqsToTerm(
+        earlierTermsInclusive[earlierTermsInclusive.length - 1],
+        reqs.corequisites,
+        terms
+      );
     }
     if (reqs.corequisites.length) {
       course.error = 'Missing corequisite';
@@ -176,18 +261,30 @@ export class CoursesService {
     return !reqs.prerequisites.length && !reqs.corequisites.length;
   }
 
+  /**
+   * Return true iff all requisites for all courses for all given
+   * terms are met. Also mutates the courses and terms to insert
+   * any errors found if we return false here.
+   * @param terms Terms of courses to verify
+   */
   areReqsMet(terms: Term[]): boolean {
+    let result = true;
     for (const term of terms) {
       for (const course of term.courses) {
         if (!this.reqsMetForCourse(course, terms)) {
           term.error = course.error || 'Requisites error';
-          return false;
+          result = false;
         }
       }
     }
-    return true;
+    return result;
   }
 
+  /**
+   * Returns a requisites tree formed from the given human
+   * readable requisites string.
+   * @param reqs Requisites as a human-readable string
+   */
   parseReqs(reqs: any): any[] {
     // Code from GitHub gist: https://gist.github.com/hxhl95/6151081
 
@@ -257,6 +354,13 @@ export class CoursesService {
       return;
     };
 
-    return parse(reqs);
+    const clean = reqs =>
+      reqs.filter(req => {
+        if ($.isNumeric(req)) return true;
+        else if (Array.isArray(req)) return (req = clean(req)).length;
+        else return this.lookupByCode(req) !== null;
+      });
+
+    return clean(parse(reqs));
   }
 }

@@ -10,11 +10,17 @@
             <mat-icon>class</mat-icon>
             <button mat-button (click)="showCourse(term, course)">
 				{{ course.subject + ' ' + course.catalog_number }}
-			</button>
+            </button>
+            <span style="padding-left: 10px; cursor: default;">
+                <i class="material-icons" *ngIf="!course.error" style="vertical-align: middle;">check_circle</i>
+                <i class="material-icons" *ngIf="!!course.error" matTooltip="{{ course.error }}" style="color: #f00; vertical-align: middle;" matTooltipPosition="above">error</i>
+            </span>
         </mat-list-item>
     </mat-list>
     <div>
         <strong>Units: </strong>{{ getTotalUnits(term) }}
+        <span *ngIf="getTotalUnits(term) < 2.25">(less than full course load)</span>
+        <span *ngIf="getTotalUnits(term) >= 2.25">(full course load)</span>
     </div>
     <div class='termFooterButtons'>
         <button (click)="addCourse(term)" mat-raised-button>

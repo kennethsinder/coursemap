@@ -1,9 +1,11 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
+import { AddCourseDialogComponent } from './add-course-dialog/add-course-dialog.component';
 import { CoursesService } from '../courses.service';
 import { Course } from '../course';
 import { Term } from '../term';
+import { ViewCourseDialogComponent } from './view-course-dialog/view-course-dialog.component';
 
 @Component({
   selector: 'app-course-plan',
@@ -19,18 +21,29 @@ export class CoursePlanComponent implements OnInit {
     },
   ];
 
-  public allCourses: Course[] = [];
-
   constructor(private coursesService: CoursesService, public dialog: MatDialog) {}
 
-  ngOnInit(): void {
-    this.coursesService.getAllCourses().subscribe(data => (this.allCourses = data));
-  }
+  ngOnInit(): void {}
 
+  /**
+   * Add new Term to terms array.
+   */
   addTerm(): void {
-    this.terms.push({ name: 'Untitled', courses: [], error: null });
+    const getNextTermName = (terms: Term[]) => {
+      const matches = terms[terms.length - 1].name.match(/(\d+)(\w+)/);
+      if (matches.length < 3) {
+        return 'Untitled';
+      }
+      return matches[2] === 'A' ? `${matches[1]}B` : `${1 + Number(matches[1])}A`;
+    };
+
+    this.terms.push({ name: getNextTermName(this.terms), courses: [], error: null });
   }
 
+  /**
+   * Returns the total number of course units in a given Term.
+   * @param term Term over which to total the units
+   */
   getTotalUnits(term: Term) {
     let result = 0;
     for (const course of term.courses) {
@@ -39,6 +52,27 @@ export class CoursePlanComponent implements OnInit {
     return result;
   }
 
+  /**
+   * Helper method to update errors for all courses in all terms.
+   * @param modifiedTerm Term for which to clear errors, if desired
+   * @param modifiedCourse Course for which to clear errors, if desired
+   */
+  private updateReqErrors(modifiedTerm?: Term, modifiedCourse?: Course) {
+    if (modifiedTerm) {
+      modifiedTerm.error = null;
+    }
+
+    if (modifiedCourse) {
+      modifiedCourse.error = null;
+    }
+
+    this.coursesService.areReqsMet(this.terms);
+  }
+
+  /**
+   * Opens a dialog to handle adding an input Course to a given Term.
+   * @param term Term to which a course should be added
+   */
   addCourse(term: any): void {
     const dialogRef = this.dialog.open(AddCourseDialogComponent, {
       width: '300px',
@@ -46,17 +80,20 @@ export class CoursePlanComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      const course = this.coursesService.lookupByCode(this.allCourses, result);
+      const course = this.coursesService.lookupByCode(result);
       if (course) {
         term.courses.push(course);
       }
 
-      term.error = null;
-      course.error = null;
-      this.coursesService.areReqsMet(this.terms);
+      this.updateReqErrors(term, course);
     });
   }
 
+  /**
+   * Shows a details dialog to view and optionally delete a given Course.
+   * @param term Term for which the given Course is scheduled
+   * @param course The Course for which to show details.
+   */
   showCourse(term: Term, course: Course) {
     const dialogRef = this.dialog.open(ViewCourseDialogComponent, {
       width: '400px',
@@ -71,51 +108,7 @@ export class CoursePlanComponent implements OnInit {
         }
       }
 
-      course.error = null;
-      term.error = null;
-      this.coursesService.areReqsMet(this.terms);
+      this.updateReqErrors(term, course);
     });
   }
 }
-
-// -------------------------------------------------------------
-@Component({
-  selector: 'app-add-course-dialog',
-  templateUrl: './add-course-dialog.component.html',
-})
-export class AddCourseDialogComponent {
-  newCourse: string;
-
-  constructor(
-    public dialogRef: MatDialogRef<AddCourseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}
-// -------------------------------------------------------------
-
-// -------------------------------------------------------------
-@Component({
-  selector: 'app-view-course-dialog',
-  templateUrl: './view-course-dialog.component.html',
-})
-export class ViewCourseDialogComponent implements OnInit {
-  course: Course;
-
-  constructor(
-    public dialogRef: MatDialogRef<ViewCourseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
-
-  ngOnInit() {
-    this.course = this.data.course;
-  }
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-}
-// -------------------------------------------------------------
