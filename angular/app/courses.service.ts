@@ -14,7 +14,36 @@ export class CoursesService {
   public allCourses: Course[] = [];
 
   constructor(private http: Http) {
-    this.getAllCourses().subscribe(data => (this.allCourses = data));
+    this.getAllCourses().subscribe(data => {
+      this.allCourses = data;
+
+      const replaceCodesWithCourses = reqs => {
+        if (!Array.isArray(reqs)) {
+          reqs = [reqs];
+        }
+        reqs.forEach(req => {
+          if (Array.isArray(req)) req = replaceCodesWithCourses(req);
+          else if (!$.isNumeric(req)) req = this.lookupByCode(req);
+        });
+        return reqs;
+      };
+
+      this.allCourses.forEach(course => {
+        course.prerequisitesDisplay = String(course.prerequisites);
+        course.corequisitesDisplay = String(course.corequisites);
+        course.antirequisitesDisplay = String(course.antirequisites);
+
+        course.prerequisites = course.prerequisites
+          ? replaceCodesWithCourses(this.parseReqs(course.prerequisites))
+          : [];
+        course.corequisites = course.corequisites
+          ? replaceCodesWithCourses(this.parseReqs(course.corequisites))
+          : [];
+        course.antirequisites = course.antirequisites
+          ? replaceCodesWithCourses(this.parseReqs(course.antirequisites))
+          : [];
+      });
+    });
   }
 
   /**
@@ -76,9 +105,11 @@ export class CoursesService {
    */
   getReqsForCourse(course: Course): { [key: string]: any[] } {
     return {
-      prerequisites: course.prerequisites ? this.parseReqs(course.prerequisites) : [],
-      antirequisites: course.antirequisites ? this.parseReqs(course.antirequisites) : [],
-      corequisites: course.corequisites ? this.parseReqs(course.corequisites) : [],
+      prerequisites: course.prerequisites ? JSON.parse(JSON.stringify(course.prerequisites)) : [],
+      antirequisites: course.antirequisites
+        ? JSON.parse(JSON.stringify(course.antirequisites))
+        : [],
+      corequisites: course.corequisites ? JSON.parse(JSON.stringify(course.corequisites)) : [],
     };
   }
 

@@ -106,9 +106,9 @@ describe('CoursesService', () => {
         subject: 'MATH',
         catalog_number: '135',
         id: 1,
-        prerequisites: 'none',
-        corequisites: 'none',
-        antirequisites: 'none',
+        prerequisites: [],
+        corequisites: [],
+        antirequisites: [],
       };
       const result: object = service.getReqsForCourse(course);
       expect(Object.keys(result).length).toBe(3);
@@ -252,9 +252,9 @@ describe('CoursesService', () => {
         subject: 'MATH',
         catalog_number: '135',
         id: 1,
-        prerequisites: '',
-        corequisites: '',
-        antirequisites: '',
+        prerequisites: [],
+        corequisites: [],
+        antirequisites: [],
       };
       const terms: Term[] = [{ name: 'Untitled', error: null, courses: [course] }];
       expect(service.reqsMetForCourse(course, terms)).toBe(true);
