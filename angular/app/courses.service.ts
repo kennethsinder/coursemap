@@ -15,24 +15,28 @@ export class CoursesService {
 
   constructor(private http: Http) {
     this.getAllCourses().subscribe(data => {
-      this.allCourses = data;
+      this.allCourses = data.map(course => {
+        course.prerequisitesDisplay = course.prerequisites;
+        course.corequisitesDisplay = course.corequisites;
+        course.antirequisitesDisplay = course.antirequisites;
+        return course as Course;
+      });
 
       const replaceCodesWithCourses = reqs => {
         if (!Array.isArray(reqs)) {
           reqs = [reqs];
         }
         reqs.forEach(req => {
-          if (Array.isArray(req)) req = replaceCodesWithCourses(req);
-          else if (!$.isNumeric(req)) req = this.lookupByCode(req);
+          if (Array.isArray(req)) {
+            req = replaceCodesWithCourses(req);
+          } else if (!$.isNumeric(req)) {
+            req = this.lookupByCode(req);
+          }
         });
         return reqs;
       };
 
       this.allCourses.forEach(course => {
-        course.prerequisitesDisplay = String(course.prerequisites);
-        course.corequisitesDisplay = String(course.corequisites);
-        course.antirequisitesDisplay = String(course.antirequisites);
-
         course.prerequisites = course.prerequisites
           ? replaceCodesWithCourses(this.parseReqs(course.prerequisites))
           : [];
@@ -49,7 +53,7 @@ export class CoursesService {
   /**
    * Gets all courses from the backend
    */
-  getAllCourses(): Observable<Course[]> {
+  getAllCourses(): Observable<any[]> {
     return this.http.get('/api/courses').map((res: any) => res.json());
   }
 
@@ -86,7 +90,11 @@ export class CoursesService {
     if (!courseCode || !this.allCourses) {
       return;
     }
-    const splitCode = courseCode.match(/([a-z]+)\s*(.+)/i).slice(1);
+    const matches = courseCode.match(/([a-z]+)\s*(.+)/i);
+    if (!matches || matches.length < 3) {
+      return;
+    }
+    const splitCode = matches.slice(1);
     if (!splitCode || splitCode.length !== 2) {
       return;
     }
@@ -232,9 +240,8 @@ export class CoursesService {
     } else if (Array.isArray(coreqs)) {
       coreqs.forEach(req => this.addCoreqsToTerm(term, req, terms));
     } else {
-      const newCourse = this.lookupByCode(coreqs);
-      term.courses.push(newCourse);
-      this.reqsMetForCourse(newCourse, terms, true);
+      term.courses.push(coreqs);
+      this.reqsMetForCourse(coreqs, terms, true);
     }
   }
 
@@ -317,7 +324,7 @@ export class CoursesService {
    * @param reqs Requisites as a human-readable string
    */
   parseReqs(reqs: any): any[] {
-    // Code from GitHub gist: https://gist.github.com/hxhl95/6151081
+    // Adapted from GitHub gist: https://gist.github.com/hxhl95/6151081
 
     reqs = reqs.replace(/prereq:/gi, '');
     reqs = reqs.replace(/([\/,;])/g, '$1 ');
@@ -382,15 +389,17 @@ export class CoursesService {
       if ((tokens = reqs.match(/[A-Z]{2,}[0-9]{2,3}[A-Z]*/))) {
         return [tokens[0]];
       }
-      return;
+      return reqs;
     };
 
-    const clean = reqs =>
-      reqs.filter(req => {
+    const clean = reqs => {
+      reqs = Array.isArray(reqs) ? reqs : [reqs];
+      return reqs.filter(req => {
         if ($.isNumeric(req)) return true;
         else if (Array.isArray(req)) return (req = clean(req)).length;
         else return this.lookupByCode(req) !== null;
       });
+    };
 
     return clean(parse(reqs));
   }
