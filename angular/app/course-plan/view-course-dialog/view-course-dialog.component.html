@@ -9,14 +9,14 @@
     <div *ngIf="course.units">
         <strong>Units:</strong> {{ course.units }}
     </div>
-    <div *ngIf="course.prerequisites">
-        <strong>Prerequisites:</strong> {{ course.prerequisites }}
+    <div *ngIf="course.prerequisitesDisplay">
+        <strong>Prerequisites:</strong> {{ course.prerequisitesDisplay }}
     </div>
-    <div *ngIf="course.corequisites">
-        <strong>Corequisites:</strong> {{ course.corequisites }}
+    <div *ngIf="course.corequisitesDisplay">
+        <strong>Corequisites:</strong> {{ course.corequisitesDisplay }}
     </div>
-    <div *ngIf="course.antirequisites">
-        <strong>Antirequisites:</strong> {{ course.antirequisites }}
+    <div *ngIf="course.antirequisitesDisplay">
+        <strong>Antirequisites:</strong> {{ course.antirequisitesDisplay }}
     </div>
 </mat-dialog-content>
 <mat-dialog-actions>

@@ -106,9 +106,9 @@ describe('CoursesService', () => {
         subject: 'MATH',
         catalog_number: '135',
         id: 1,
-        prerequisites: 'none',
-        corequisites: 'none',
-        antirequisites: 'none',
+        prerequisites: [],
+        corequisites: [],
+        antirequisites: [],
       };
       const result: object = service.getReqsForCourse(course);
       expect(Object.keys(result).length).toBe(3);
@@ -246,15 +246,36 @@ describe('CoursesService', () => {
     });
   });
 
+  describe('Method: addCoreqsToTerm', () => {
+    it('should add single coreq to term', () => {
+      const course1: Course = { subject: 'MATH', catalog_number: '135', id: 1 };
+      const course2: Course = {
+        subject: 'MATH',
+        catalog_number: '136',
+        id: 2,
+        corequisites: [course1],
+      };
+      const term: Term = {
+        name: '1A',
+        error: null,
+        courses: [course2],
+      };
+      const terms: Term[] = [term];
+      service.addCoreqsToTerm(term, course2.corequisites, terms);
+
+      expect(term.courses.length).toBe(2);
+    });
+  });
+
   describe('Method: reqsMetForCourse', () => {
     it('should return true if course and terms are falsy', () => {
       const course: Course = {
         subject: 'MATH',
         catalog_number: '135',
         id: 1,
-        prerequisites: '',
-        corequisites: '',
-        antirequisites: '',
+        prerequisites: [],
+        corequisites: [],
+        antirequisites: [],
       };
       const terms: Term[] = [{ name: 'Untitled', error: null, courses: [course] }];
       expect(service.reqsMetForCourse(course, terms)).toBe(true);
@@ -284,6 +305,17 @@ describe('CoursesService', () => {
         },
       ];
       expect(service.parseReqs('MATH 239')).toEqual(['MATH239']);
+    });
+
+    it('should not include an invalid course', () => {
+      service.allCourses = [
+        {
+          subject: 'MATH',
+          catalog_number: '239',
+          id: 1,
+        },
+      ];
+      expect(service.parseReqs('One of MATH 9001, MATH 239')).toEqual([1, 'MATH239']);
     });
   });
 });
