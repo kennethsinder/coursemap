@@ -230,7 +230,7 @@ export class CoursesService {
   }
 
   addCoreqsToTerm(term: Term, coreqs: any, terms: Term[]) {
-    if (!coreqs || !coreqs.length) {
+    if (!coreqs || (Array.isArray(coreqs) && !coreqs.length)) {
       return;
     }
 
