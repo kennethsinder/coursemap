@@ -32,7 +32,7 @@ before_script:
 
 script:
   - ng build --prod --aot=false
-  - ng test --single-run
+  - ng test --watch=false
   - ./vendor/bin/phpunit
 
 notifications:
