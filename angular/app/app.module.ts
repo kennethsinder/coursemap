@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import {
   MatButtonModule,
   MatCheckboxModule,
+  MatFormFieldModule,
   MatGridListModule,
   MatCardModule,
   MatListModule,
@@ -37,6 +38,7 @@ export const appModule: object = {
     MatCardModule,
     MatCheckboxModule,
     MatDialogModule,
+    MatFormFieldModule,
     MatGridListModule,
     MatIconModule,
     MatListModule,

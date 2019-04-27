@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 
-import 'rxjs/add/operator/map';
-import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { Course } from './course';
 import { Term } from './term';
 
@@ -54,7 +54,7 @@ export class CoursesService {
    * Gets all courses from the backend
    */
   getAllCourses(): Observable<any[]> {
-    return this.http.get('/api/courses').map((res: any) => res.json());
+    return this.http.get('/api/courses').pipe(map((res: any) => res.json()));
   }
 
   /**
